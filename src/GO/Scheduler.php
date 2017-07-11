@@ -11,28 +11,28 @@ class Scheduler
      *
      * @var array
      */
-    private $jobs = [];
+    private $jobs = array();
 
     /**
      * Successfully executed jobs.
      *
      * @var array
      */
-    private $executedJobs = [];
+    private $executedJobs = array();
 
     /**
      * Failed jobs.
      *
      * @var array
      */
-    private $failedJobs = [];
+    private $failedJobs = array();
 
     /**
      * The verbose output of the scheduled jobs.
      *
      * @var array
      */
-    private $outputSchedule = [];
+    private $outputSchedule = array();
 
     /**
      * Create new instance.
@@ -40,7 +40,7 @@ class Scheduler
      * @param  array  $config
      * @return void
      */
-    public function __construct(array $config = [])
+    public function __construct(array $config = array())
     {
         $this->config = $config;
     }
@@ -63,8 +63,8 @@ class Scheduler
      */
     private function prioritiseJobs()
     {
-        $background = [];
-        $foreground = [];
+        $background = array();
+        $foreground = array();
 
         foreach ($this->jobs as $job) {
             if ($job->canRunInBackground()) {
@@ -95,7 +95,7 @@ class Scheduler
      * @param  string  $id   Optional custom identifier
      * @return Job
      */
-    public function call(callable $fn, $args = [], $id = null)
+    public function call(callable $fn, $args = array(), $id = null)
     {
         $job = new Job($fn, $args, $id);
 
@@ -113,10 +113,11 @@ class Scheduler
      * @param  string  $id      Optional custom identifier
      * @return Job
      */
-    public function php($script, $bin = null, $args = [], $id = null)
+    public function php($script, $bin = null, $args = array(), $id = null)
     {
         $bin = $bin !== null && is_string($bin) && file_exists($bin) ?
-            $bin : PHP_BINARY === '' ? '/usr/bin/php' : PHP_BINARY;
+            $bin : PHP_BINARY !== '' && PHP_BINARY !== 'PHP_BINARY' ?
+                PHP_BINARY : PHP_BINDIR === '' ? '/usr/bin/php' : PHP_BINDIR . '/php';
 
         $job = new Job($bin . ' ' . $script, $args, $id);
 
@@ -133,7 +134,7 @@ class Scheduler
      * @param  string  $id       Optional custom identifier
      * @return Job
      */
-    public function raw($command, $args = [], $id = null)
+    public function raw($command, $args = array(), $id = null)
     {
         $job = new Job($command, $args, $id);
 
@@ -173,7 +174,8 @@ class Scheduler
      */
     private function addSchedulerVerboseOutput($string)
     {
-        $now = '[' . (new DateTime('now'))->format('c') . '] ';
+        $date = new DateTime('now');
+        $now = '[' . $date->format('c') . '] ';
         $this->outputSchedule[] = $now . $string;
 
         // Print to stdoutput in light gray

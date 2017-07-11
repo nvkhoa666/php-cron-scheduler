@@ -1,9 +1,11 @@
-<?php namespace GO\Traits;
+<?php
+namespace GO\Traits;
 
 use Cron\CronExpression;
 use InvalidArgumentException;
 
-trait Interval
+
+class TraitsAlternative
 {
     /**
      * Set the execution time to every minute.
@@ -51,7 +53,7 @@ trait Interval
      * @param  int\string $weekday
      * @return array
      */
-    private function validateCronSequence($minute = null, $hour = null, $day = null, $month = null, $weekday = null)
+    protected function validateCronSequence($minute = null, $hour = null, $day = null, $month = null, $weekday = null)
     {
         return array(
             'minute'  => $this->validateCronRange($minute, 0, 59),
@@ -70,7 +72,7 @@ trait Interval
      * @param  int        $max
      * @return mixed
      */
-    private function validateCronRange($value, $min, $max)
+    protected function validateCronRange($value, $min, $max)
     {
         if ($value === null || $value === '*') {
             return '*';
@@ -389,4 +391,65 @@ trait Interval
     {
         return $this->monthly(12, $day, $hour, $minute);
     }
+
+    /**
+     * Get email configuration.
+     *
+     * @return array
+     */
+    public function getEmailConfig()
+    {
+        $config = array();
+        if (! isset($this->emailConfig['subject']) ||
+            ! is_string($this->emailConfig['subject'])
+        ) {
+            $this->emailConfig['subject'] = 'Cronjob execution';
+        }
+
+        if (! isset($this->emailConfig['from'])) {
+            $this->emailConfig['from'] = array('cronjob@server.my' => 'My Email Server');
+        }
+
+        if (! isset($this->emailConfig['body']) ||
+            ! is_string($this->emailConfig['body'])
+        ) {
+            $this->emailConfig['body'] = 'Cronjob output attached';
+        }
+
+        if (! isset($this->emailConfig['transport']) ||
+            ! ($this->emailConfig['transport'] instanceof \Swift_Transport)
+        ) {
+            $this->emailConfig['transport'] = new \Swift_SendmailTransport();
+        }
+
+        return $this->emailConfig;
+    }
+
+    /**
+     * Send files to emails.
+     *
+     * @param  array  $files
+     * @return void
+     */
+    protected function sendToEmails(array $files)
+    {
+        $mailer = new \Swift_Mailer($this->emailConfig['transport']);
+
+        $config = $this->getEmailConfig();
+
+        $swiftMessage = new \Swift_Message();
+        $message = $swiftMessage
+            ->setSubject($config['subject'])
+            ->setFrom($config['from'])
+            ->setTo($this->emailTo)
+            ->setBody($config['body'])
+            ->addPart('<q>Cronjob output attached</q>', 'text/html');
+
+        foreach ($files as $filename) {
+            $message->attach(\Swift_Attachment::fromPath($filename));
+        }
+
+        $mailer->send($message);
+    }
+
 }

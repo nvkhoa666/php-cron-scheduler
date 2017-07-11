@@ -9,7 +9,7 @@ trait Mailer
      */
     public function getEmailConfig()
     {
-        $config = [];
+        $config = array();
         if (! isset($this->emailConfig['subject']) ||
             ! is_string($this->emailConfig['subject'])
         ) {
@@ -17,7 +17,7 @@ trait Mailer
         }
 
         if (! isset($this->emailConfig['from'])) {
-            $this->emailConfig['from'] = ['cronjob@server.my' => 'My Email Server'];
+            $this->emailConfig['from'] = array('cronjob@server.my' => 'My Email Server');
         }
 
         if (! isset($this->emailConfig['body']) ||
@@ -47,7 +47,8 @@ trait Mailer
 
         $config = $this->getEmailConfig();
 
-        $message = (new \Swift_Message())
+        $swiftMessage = new \Swift_Message();
+        $message = $swiftMessage
             ->setSubject($config['subject'])
             ->setFrom($config['from'])
             ->setTo($this->emailTo)

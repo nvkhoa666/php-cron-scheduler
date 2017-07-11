@@ -2,54 +2,52 @@
 
 use DateTime;
 use Exception;
+use GO\Traits\TraitsAlternative;
 use InvalidArgumentException;
 
-class Job
+class Job extends TraitsAlternative
 {
-    use Traits\Interval,
-        Traits\Mailer;
-
     /**
      * Job identifier.
      *
      * @var string
      */
-    private $id;
+    protected $id;
 
     /**
      * Command to execute.
      *
      * @var mixed
      */
-    private $command;
+    protected $command;
 
     /**
      * Arguments to be passed to the command.
      *
      * @var array
      */
-    private $args = [];
+    protected $args = array();
 
     /**
      * Defines if the job should run in background.
      *
      * @var bool
      */
-    private $runInBackground = true;
+    protected $runInBackground = true;
 
     /**
      * Creation time.
      *
      * @var DateTime
      */
-    private $creationTime;
+    protected $creationTime;
 
     /**
      * Job schedule time.
      *
      * @var CronExpression
      */
-    private $executionTime;
+    protected $executionTime;
 
     /**
      * Temporary directory path for
@@ -57,14 +55,14 @@ class Job
      *
      * @var string
      */
-    private $tempDir;
+    protected $tempDir;
 
     /**
      * Path to the lock file.
      *
      * @var string
      */
-    private $lockFile;
+    protected $lockFile;
 
     /**
      * This could prevent the job to run.
@@ -72,42 +70,42 @@ class Job
      *
      * @var bool
      */
-    private $truthTest = true;
+    protected $truthTest = true;
 
     /**
      * The output of the executed job.
      *
      * @var mixex
      */
-    private $output;
+    protected $output;
 
     /**
      * Files to write the output of the job.
      *
      * @var array
      */
-    private $outputTo = [];
+    protected $outputTo = array();
 
     /**
      * Email addresses where the output should be sent to.
      *
      * @var array
      */
-    private $emailTo = [];
+    protected $emailTo = array();
 
     /**
      * Configuration for email sending.
      *
      * @var array
      */
-    private $emailConfig = [];
+    protected $emailConfig = array();
 
     /**
      * A function to execute after the job is executed.
      *
      * @var callable
      */
-    private $after;
+    protected $after;
 
     /**
      * A function to ignore an overlapping job.
@@ -115,22 +113,21 @@ class Job
      *
      * @var callable
      */
-    private $whenOverlapping;
+    protected $whenOverlapping;
 
     /**
      * @var Swift_Mailer
      */
-    private $mailer;
+    protected $mailer;
 
     /**
      * Create a new Job instance.
      *
-     * @param  string\callable  $command
-     * @param  array            $args
-     * @param  string           $id
-     * @return void
+     * @param  string\callable $command
+     * @param  array           $args
+     * @param  string          $id
      */
-    public function __construct($command, $args = [], $id = null)
+    public function __construct($command, $args = array(), $id = null)
     {
         if (is_string($id)) {
             $this->id = $id;
@@ -236,10 +233,10 @@ class Job
             $tempDir = $this->tempDir;
         }
 
-        $this->lockFile = implode('/', [
+        $this->lockFile = implode('/', array(
             trim($tempDir),
             trim($this->id) . '.lock',
-        ]);
+        ));
 
         if ($whenOverlapping) {
             $this->whenOverlapping = $whenOverlapping;
@@ -306,7 +303,7 @@ class Job
      * @param  array  $config
      * @return this
      */
-    public function configure(array $config = [])
+    public function configure(array $config = array())
     {
         if (isset($config['email'])) {
             if (! is_array($config['email'])) {
@@ -401,8 +398,9 @@ class Job
     /**
      * Execute a callable job.
      *
-     * @param  callable  $fn
+     * @param  callable $fn
      * @return string
+     * @throws Exception
      */
     private function exec(callable $fn)
     {
@@ -441,7 +439,7 @@ class Job
      */
     public function output($filename, $append = false)
     {
-        $this->outputTo = is_array($filename) ? $filename : [$filename];
+        $this->outputTo = is_array($filename) ? $filename : array($filename);
         $this->outputMode = $append === false ? 'w' : 'a';
 
         return $this;
@@ -471,7 +469,7 @@ class Job
             throw new InvalidArgumentException('The email can be only string or array');
         }
 
-        $this->emailTo = is_array($email) ? $email : [$email];
+        $this->emailTo = is_array($email) ? $email : array($email);
 
         // Force the job to run in foreground
         $this->inForeground();
