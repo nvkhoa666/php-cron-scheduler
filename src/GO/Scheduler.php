@@ -115,9 +115,16 @@ class Scheduler
      */
     public function php($script, $bin = null, $args = array(), $id = null)
     {
-        $bin = $bin !== null && is_string($bin) && file_exists($bin) ?
-            $bin : PHP_BINARY !== '' && PHP_BINARY !== 'PHP_BINARY' ?
-                PHP_BINARY : PHP_BINDIR === '' ? '/usr/bin/php' : PHP_BINDIR . '/php';
+        if ($bin !== null && is_string($bin) && file_exists($bin)) {
+            // Do nothing
+        } elseif (PHP_BINARY !== '' && PHP_BINARY !== 'PHP_BINARY') {
+            $bin = PHP_BINARY;
+        } elseif (PHP_BINDIR === '') {
+            // Use default
+            $bin = '/usr/bin/php';
+        } else {
+            $bin = PHP_BINDIR . '/php';
+        }
 
         $job = new Job($bin . ' ' . $script, $args, $id);
 
